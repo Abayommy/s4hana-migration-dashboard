@@ -1,4 +1,4 @@
-import { SystemInfo, CustomObject, MigrationAssessment, Recommendation, Risk } from '../types/migration';
+import type { SystemInfo, CustomObject, MigrationAssessment, Recommendation, Risk } from '../types/migration';
 
 const SIMPLIFICATION_ITEMS = [
   { id: '2267308', desc: 'S4TWL - Material Ledger Mandatory' },
