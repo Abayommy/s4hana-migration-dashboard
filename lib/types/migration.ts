@@ -1,17 +1,11 @@
-Excellent! All the directories are created. Now let's create the actual files with content:
-Step 6: Create the Migration Types File
-Let's create the types file first. You can use VS Code or nano:
-Option A: Using nano (in terminal)
-bashnano lib/types/migration.ts
-Once nano opens, paste this complete content:
-typescriptexport interface SystemInfo {
+export interface SystemInfo {
   sid: string;
   systemType: 'ECC' | 'ECC_on_HANA' | 'S4HANA';
   version: string;
   database: string;
-  size: number; // in GB
+  size: number;
   modules: string[];
-  customCode: number; // lines of custom ABAP
+  customCode: number;
   users: number;
 }
 
@@ -30,7 +24,7 @@ export interface S4Impact {
   compatibility: 'COMPATIBLE' | 'DEPRECATED' | 'REPLACED' | 'INCOMPATIBLE';
   simplificationItem?: string;
   alternativeSolution?: string;
-  estimatedEffort: number; // in hours
+  estimatedEffort: number;
   automationPossible: boolean;
 }
 
@@ -40,7 +34,7 @@ export interface MigrationAssessment {
   assessmentDate: Date;
   totalScore: number;
   complexityLevel: 'SIMPLE' | 'MODERATE' | 'COMPLEX' | 'HIGHLY_COMPLEX';
-  estimatedDuration: number; // in weeks
+  estimatedDuration: number;
   customObjects: CustomObject[];
   recommendations: Recommendation[];
   risks: Risk[];
@@ -61,5 +55,5 @@ export interface Risk {
   severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
   description: string;
   mitigation: string;
-  probability: number; // 0-100
+  probability: number;
 }
