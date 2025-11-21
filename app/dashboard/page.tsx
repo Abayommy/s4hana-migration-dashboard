@@ -14,18 +14,85 @@ import { generateMockAssessment } from '@/lib/data/mockDataGenerator';
 import { MigrationAssessment } from '@/lib/types/migration';
 import CustomCodeAnalysis from '@/components/dashboard/CustomCodeAnalysis';
 import MigrationTimeline from '@/components/dashboard/MigrationTimeline';
+import ConfigurationPanel from '@/components/dashboard/ConfigurationPanel';
+import { useConfigStore } from '@/lib/store/configStore';
 
 export default function DashboardPage() {
   const [assessment, setAssessment] = useState<MigrationAssessment | null>(null);
   const [loading, setLoading] = useState(true);
+  const config = useConfigStore();
 
   useEffect(() => {
-    // Simulate API call
+    // Initial load
     setTimeout(() => {
-      setAssessment(generateMockAssessment());
+      const initialAssessment = generateMockAssessment();
+      setAssessment(initialAssessment);
       setLoading(false);
     }, 1000);
   }, []);
+
+  // Regenerate assessment when config changes
+  const handleConfigApply = () => {
+    setLoading(true);
+    setTimeout(() => {
+      const newAssessment = generateMockAssessment();
+      
+      // Apply config values
+      newAssessment.systemInfo.size = config.systemSize;
+      newAssessment.systemInfo.users = config.users;
+      newAssessment.systemInfo.modules = config.modules;
+      newAssessment.totalScore = config.calculateReadiness();
+      newAssessment.complexityLevel = config.complexity;
+      
+      // Adjust custom objects count based on config
+      if (config.customObjects !== newAssessment.customObjects.length) {
+        if (config.customObjects < newAssessment.customObjects.length) {
+          newAssessment.customObjects = newAssessment.customObjects.slice(0, config.customObjects);
+        } else {
+          // Generate more objects if needed
+          const currentLength = newAssessment.customObjects.length;
+          for (let i = currentLength; i < config.customObjects; i++) {
+            newAssessment.customObjects.push({
+              id: `OBJ${2000 + i}`,
+              name: `ZCUSTOM_PROGRAM_${i}`,
+              type: 'REPORT',
+              complexity: Math.random() > 0.5 ? 'HIGH' : 'MEDIUM',
+              lines: Math.floor(Math.random() * 5000) + 100,
+              lastModified: new Date(),
+              module: config.modules[Math.floor(Math.random() * config.modules.length)] || 'FI',
+              s4Impact: {
+                compatibility: Math.random() > 0.6 ? 'COMPATIBLE' : 'INCOMPATIBLE',
+                estimatedEffort: 20,
+                automationPossible: Math.random() > 0.5,
+              }
+            });
+          }
+        }
+      }
+      
+      // Update custom code count in system info
+      newAssessment.systemInfo.customCode = newAssessment.customObjects.reduce((acc, obj) => acc + obj.lines, 0);
+      
+      // Adjust estimated duration based on complexity
+      switch(config.complexity) {
+        case 'SIMPLE':
+          newAssessment.estimatedDuration = 16;
+          break;
+        case 'MODERATE':
+          newAssessment.estimatedDuration = 24;
+          break;
+        case 'COMPLEX':
+          newAssessment.estimatedDuration = 36;
+          break;
+        case 'HIGHLY_COMPLEX':
+          newAssessment.estimatedDuration = 52;
+          break;
+      }
+      
+      setAssessment(newAssessment);
+      setLoading(false);
+    }, 500);
+  };
 
   if (loading) {
     return (
@@ -48,8 +115,16 @@ export default function DashboardPage() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <Title>S/4HANA Migration Readiness Dashboard</Title>
-        <Text>System: {assessment.systemInfo.sid} | Assessment Date: {assessment.assessmentDate.toLocaleDateString()}</Text>
+        <div className="flex justify-between items-center">
+          <div>
+            <Title>S/4HANA Migration Readiness Dashboard</Title>
+            <Text>System: {assessment.systemInfo.sid} | Assessment Date: {assessment.assessmentDate.toLocaleDateString()}</Text>
+          </div>
+          <div className="text-right">
+            <Text className="text-sm text-gray-600">Interactive Demo Mode</Text>
+            <Text className="text-xs text-blue-600">Click settings to adjust parameters →</Text>
+          </div>
+        </div>
       </div>
 
       {/* Key Metrics Grid */}
@@ -152,6 +227,9 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Configuration Panel - Floating button and panel */}
+      <ConfigurationPanel onApply={handleConfigApply} />
     </div>
   );
 }
